@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:rick_morty_api/model/character.dart';
 
 class Episode {
@@ -6,7 +7,7 @@ class Episode {
   String? episode;
   String? airDate;
   List<Character>? characters;
-  bool favorited = false;
+  ValueNotifier<bool> favorited = ValueNotifier(false);
   bool watched = false;
 
   Episode({

@@ -35,14 +35,15 @@ class _EpisodeListTileState extends State<EpisodeListTile> {
           child: InkWell(
             onTap: () {
               setState(() {
-                episode.favorited = !episode.favorited;
+                episode.favorited.value = !episode.favorited.value;
               });
+              viewModel.setFavorited(episode);
             },
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(episode.id!),
               Icon(
                 Icons.star,
-                color: episode.favorited ? Colors.amber : null,
+                color: episode.favorited.value ? Colors.amber : null,
               ),
             ]),
           ),

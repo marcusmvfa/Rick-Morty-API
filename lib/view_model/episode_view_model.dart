@@ -1,14 +1,19 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:rick_morty_api/model/episode.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EpisodesViewModel extends ChangeNotifier {
   final BehaviorSubject<List?> _repoSubject = BehaviorSubject<List?>();
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   ValueNotifier<List<Episode>> episodes = ValueNotifier([]);
   Episode episodeSelected = Episode();
+  var listFavorites = [];
 
   static final GraphQLClient _client = GraphQLClient(
     cache: GraphQLCache(),
@@ -47,5 +52,31 @@ class EpisodesViewModel extends ChangeNotifier {
     // result.data can be either a [List<dynamic>] or a [Map<String, dynamic>]
     final repositories = result.data!['episodes']['results'];
     episodes.value = List<Episode>.from(repositories.map((model) => Episode.fromJson(model)));
+  }
+
+  setFavorited(Episode ep) async {
+    var prefs = await _prefs;
+    if (ep.favorited.value == true && !listFavorites.contains(ep.id!)) {
+      listFavorites.add(ep.id!);
+    } else if (ep.favorited.value == false) {
+      listFavorites.remove(ep.id!);
+    }
+
+    prefs.setStringList("favorites", listFavorites as List<String>);
+  }
+
+  getFavorites() async {
+    var prefs = await _prefs;
+    listFavorites = prefs.getStringList("favorites") ?? [];
+  }
+
+  fillFavorites() async {
+    await getFavorites();
+    for (var ep in episodes.value) {
+      if (listFavorites.contains(ep.id.toString())) {
+        ep.favorited.value = true;
+      }
+    }
+    notifyListeners();
   }
 }

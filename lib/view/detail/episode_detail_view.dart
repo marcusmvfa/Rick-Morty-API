@@ -10,7 +10,7 @@ class EpisodeDetailView extends StatelessWidget {
   EpisodeDetailView({Key? key}) : super(key: key);
   late EpisodesViewModel vm;
 
-  isFavorited() => vm.episodeSelected.favorited ? Colors.amber : Colors.white;
+  isFavorited() => vm.episodeSelected.favorited.value ? Colors.amber : Colors.white;
   @override
   Widget build(BuildContext context) {
     vm = Provider.of<EpisodesViewModel>(context, listen: false);
@@ -20,10 +20,20 @@ class EpisodeDetailView extends StatelessWidget {
           const Spacer(),
           const Text("Episode Detail"),
           const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Icon(Icons.star, color: isFavorited()),
-          ),
+          ValueListenableBuilder(
+              valueListenable: vm.episodeSelected.favorited,
+              builder: (context, model, child) {
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: IconButton(
+                      onPressed: (() {
+                        vm.episodeSelected.favorited.value = !vm.episodeSelected.favorited.value;
+                        vm.setFavorited(vm.episodeSelected);
+                      }),
+                      icon: const Icon(Icons.star),
+                      color: isFavorited()),
+                );
+              }),
         ]),
       ),
       body: SingleChildScrollView(
