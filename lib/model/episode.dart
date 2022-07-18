@@ -8,7 +8,7 @@ class Episode {
   String? airDate;
   List<Character>? characters;
   ValueNotifier<bool> favorited = ValueNotifier(false);
-  bool watched = false;
+  ValueNotifier<bool> watched = ValueNotifier(false);
 
   Episode({
     this.id,

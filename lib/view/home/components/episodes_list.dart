@@ -9,7 +9,7 @@ class EpisodesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var viewModel = Provider.of<EpisodesViewModel>(context, listen: true);
-    viewModel.fillFavorites();
+    viewModel.getPreferences();
     return ValueListenableBuilder(
         valueListenable: viewModel.episodes,
         builder: (context, value, child) {

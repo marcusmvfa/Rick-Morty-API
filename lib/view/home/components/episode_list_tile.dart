@@ -31,7 +31,7 @@ class _EpisodeListTileState extends State<EpisodeListTile> {
       },
       child: ListTile(
         leading: SizedBox(
-          width: size.width * 0.1,
+          width: size.width * 0.12,
           child: InkWell(
             onTap: () {
               setState(() {

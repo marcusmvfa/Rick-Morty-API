@@ -44,25 +44,37 @@ class HeaderDetail extends StatelessWidget {
               vm.episodeSelected.airDate!,
               style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
             ),
-            Card(
-              elevation: !vm.episodeSelected.watched ? 5 : 1,
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Row(children: [
-                  Icon(
-                    vm.episodeSelected.watched ? Icons.check : Icons.more_horiz_outlined,
-                    color: vm.episodeSelected.watched ? Colors.green : Colors.grey,
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  const Text(
-                    "Watched",
-                    style:
-                        TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold),
-                  ),
-                ]),
-              ),
+            InkWell(
+              onTap: () {
+                vm.episodeSelected.watched.value = !vm.episodeSelected.watched.value;
+                vm.setWatched(vm.episodeSelected);
+              },
+              child: ValueListenableBuilder(
+                  valueListenable: vm.episodeSelected.watched,
+                  builder: (context, model, child) {
+                    return Card(
+                      elevation: !vm.episodeSelected.watched.value ? 5 : 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Row(children: [
+                          Icon(
+                            vm.episodeSelected.watched.value
+                                ? Icons.check
+                                : Icons.more_horiz_outlined,
+                            color: vm.episodeSelected.watched.value ? Colors.green : Colors.grey,
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          const Text(
+                            "Watched",
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold),
+                          ),
+                        ]),
+                      ),
+                    );
+                  }),
             ),
           ]),
         ),

@@ -14,6 +14,7 @@ class EpisodesViewModel extends ChangeNotifier {
   ValueNotifier<List<Episode>> episodes = ValueNotifier([]);
   Episode episodeSelected = Episode();
   var listFavorites = [];
+  var listWatched = [];
 
   static final GraphQLClient _client = GraphQLClient(
     cache: GraphQLCache(),
@@ -70,6 +71,22 @@ class EpisodesViewModel extends ChangeNotifier {
     listFavorites = prefs.getStringList("favorites") ?? [];
   }
 
+  setWatched(Episode ep) async {
+    var prefs = await _prefs;
+    if (ep.watched.value == true && !listWatched.contains(ep.id!)) {
+      listWatched.add(ep.id!);
+    } else if (ep.watched.value == false) {
+      listWatched.remove(ep.id!);
+    }
+
+    prefs.setStringList("watched", listWatched as List<String>);
+  }
+
+  getWatched() async {
+    var prefs = await _prefs;
+    listWatched = prefs.getStringList("watched") ?? <String>[];
+  }
+
   fillFavorites() async {
     await getFavorites();
     for (var ep in episodes.value) {
@@ -78,5 +95,19 @@ class EpisodesViewModel extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  fillWatcheds() async {
+    await getWatched();
+    for (var ep in episodes.value) {
+      if (listWatched.contains(ep.id.toString())) {
+        ep.watched.value = true;
+      }
+    }
+  }
+
+  getPreferences() async {
+    await fillFavorites();
+    await fillWatcheds();
   }
 }
