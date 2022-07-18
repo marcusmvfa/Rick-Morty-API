@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rick_morty_api/view/home/components/episodes_list.dart';
 import 'package:rick_morty_api/view_model/episode_view_model.dart';
 
@@ -15,14 +16,23 @@ class _MyHomeViewState extends State<MyHomeView> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     tabController = TabController(vsync: this, length: 2);
+    tabController.addListener(() {
+      if (tabController.index == 1) {
+        Provider.of<EpisodesViewModel>(context, listen: false).getEpisodes();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    EpisodesViewModel ctrl = EpisodesViewModel();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("AZShip - Rick and Morty"),
+        title: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: const Center(
+            child: Text("AZShip - Rick and Morty"),
+          ),
+        ),
         bottom: TabBar(
           controller: tabController,
           tabs: [

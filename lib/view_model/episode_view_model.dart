@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:rick_morty_api/model/episode.dart';
+import 'package:rick_morty_api/services/episode_service.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,47 +13,33 @@ class EpisodesViewModel extends ChangeNotifier {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   ValueNotifier<List<Episode>> episodes = ValueNotifier([]);
+  ValueNotifier<bool> isLoading = ValueNotifier(false);
   Episode episodeSelected = Episode();
-  var listFavorites = [];
-  var listWatched = [];
+  var listFavorites = <String>[];
+  var listWatched = <String>[];
 
-  static final GraphQLClient _client = GraphQLClient(
-    cache: GraphQLCache(),
-    link: HttpLink('https://rickandmortyapi.com/graphql'),
+  ValueNotifier<GraphQLClient> graphclient = ValueNotifier(
+    GraphQLClient(
+      defaultPolicies: DefaultPolicies(query: Policies(fetch: FetchPolicy.noCache)),
+      cache: GraphQLCache(),
+      link: HttpLink('https://rickandmortyapi.com/graphql'),
+    ),
   );
 
   EpisodesViewModel() {
-    _queryRepo();
+    getEpisodes().then((value) async {
+      await getPreferences();
+    });
   }
 
-  Future<void> _queryRepo({int nRepositories = 50}) async {
-    // null is loading
-    _repoSubject.add(null);
-    final _options = WatchQueryOptions(
-      document: gql("""
-    query users {
-      episodes{
-    info{count, pages}
-    results{id,name, episode, air_date,characters{id,name,species, image,status}}
-  }
-    }
-  """),
-      variables: <String, dynamic>{
-        'nRepositories': nRepositories,
-      },
-      pollInterval: Duration(seconds: 4),
-      fetchResults: true,
-    );
+  Future<void> getEpisodes() async {
+    isLoading.value = true;
+    final result = await EpisodeService().getEpisodes(graphclient.value);
 
-    final result = await _client.query(_options);
-
-    if (result.hasException) {
-      _repoSubject.addError(result.exception!);
-      return;
-    }
-    // result.data can be either a [List<dynamic>] or a [Map<String, dynamic>]
     final repositories = result.data!['episodes']['results'];
     episodes.value = List<Episode>.from(repositories.map((model) => Episode.fromJson(model)));
+    mergeFavorites();
+    isLoading.value = false;
   }
 
   setFavorited(Episode ep) async {
@@ -94,7 +81,6 @@ class EpisodesViewModel extends ChangeNotifier {
         ep.favorited.value = true;
       }
     }
-    notifyListeners();
   }
 
   fillWatcheds() async {
@@ -106,8 +92,34 @@ class EpisodesViewModel extends ChangeNotifier {
     }
   }
 
-  getPreferences() async {
+  Future getPreferences() async {
+    isLoading.value = true;
     await fillFavorites();
     await fillWatcheds();
+    isLoading.value = false;
+  }
+
+  searchEpisode(String text) async {
+    final result = await EpisodeService().searchEpisode(graphclient.value, text);
+
+    final repositories = result.data!['episodes']['results'];
+    episodes.value = List<Episode>.from(repositories.map((model) => Episode.fromJson(model)));
+    mergeFavorites();
+  }
+
+  mergeFavorites() {
+    var list = <Episode>[];
+    for (var ep in episodes.value) {
+      if (listFavorites.contains(ep.id)) {
+        ep.favorited.value = true;
+      }
+      if (listWatched.contains(ep.id)) {
+        ep.watched.value = true;
+      }
+      list.add(ep);
+    }
+
+    episodes.value = list;
+    print("merdge");
   }
 }

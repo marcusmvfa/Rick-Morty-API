@@ -35,9 +35,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GraphQLProvider(
-      client: client,
+      client: Provider.of<EpisodesViewModel>(context, listen: false).graphclient,
       child: CacheProvider(
         child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             title: 'azs-mob-rickandmorty',
             theme: ThemeData(
               primarySwatch: Colors.blue,
